@@ -1,3 +1,10 @@
+%% Call the function of multitaper_spectogram.m
+clear all
+close all
+clc
+
+cd '/Users/filippobarbadoro/Desktop/Matlab/BOAS dataset/script'
+
 %% _____ Pairing channels _____
 %            (median)      
 

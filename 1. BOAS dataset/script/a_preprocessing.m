@@ -1,4 +1,4 @@
-%% Call the function of multitaper_spectogram.m
+%% Import and preprocessing
 clear all
 close all
 clc
