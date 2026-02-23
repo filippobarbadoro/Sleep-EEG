@@ -22,7 +22,7 @@ ylabel('Power (dB/Hz)');
 title('Periodogram');
 xlim([0.35 49]);
 
-%saveas(gcf, '/Users/filippobarbadoro/Desktop/Matlab/BOAS dataset/figure/Periodogram_F3.png');
+%saveas(gcf, '/Users/filippobarbadoro/MATLAB_local/Script/3. BOAS dataset/BOAS_figure/Periodogram_F3.png');
 
 %% Subplot of the periodograms of all channel of interest
 [pxxC3, fC3] = periodogram(C3,[],[],data_eeg_filt.fsample);
@@ -63,7 +63,7 @@ ylabel('Power (dB/Hz)');
 title('Periodogram O2');
 xlim([0.35 49]);
 
-saveas(gcf, '/Users/filippobarbadoro/Desktop/Matlab/BOAS dataset/figure/Periodogram_allChan.png');
+saveas(gcf, '/Users/filippobarbadoro/MATLAB_local/Script/3. BOAS dataset/BOAS_figure/Periodogram_allChan.png');
 
 %% Periodogram of the average signal
 avgSig = mean(data_eeg_filt.trial{1}(:, 9800:11970),1); % average signal of the time window of interest
@@ -78,7 +78,7 @@ ylabel('Power (dB/Hz)');
 title('Periodogram Average Signal');
 xlim([0.35 49]);
 
-saveas(gcf, '/Users/filippobarbadoro/Desktop/Matlab/BOAS dataset/figure/Periodogram_AvgSig.png');
+saveas(gcf, '/Users/filippobarbadoro/MATLAB_local/Script/3. BOAS dataset/BOAS_figure/Periodogram_AvgSig.png');
 
 %% Average periodogram of the whole night
 avgSignal = mean(data_eeg_filt.trial{1},1);
@@ -94,7 +94,7 @@ ylabel('Power (dB/Hz)');
 title('Average Periodogram (whole night)');
 xlim([0.35 49]);
 
-%saveas(gcf, '/Users/filippobarbadoro/Desktop/Matlab/BOAS dataset/figure/Avg_Periodogram.png')
+%saveas(gcf, '/Users/filippobarbadoro/MATLAB_local/Script/3. BOAS dataset/BOAS_figure/Avg_Periodogram.png')
 
 %% all night periodograms
 %% C3
@@ -256,6 +256,6 @@ media_f_periodogram = somma_f_periodogram/6;
 figure;
 plot(media_f_periodogram, media_pxx_periodogram);
 title('Periodogramma medio');
-saveas(gcf,'/Users/filippobarbadoro/Desktop/Matlab/BOAS dataset/figure/Periodogramma_medio.png');
+saveas(gcf,'/Users/filippobarbadoro/MATLAB_local/Script/3. BOAS dataset/BOAS_figure/Periodogramma_medio.png');
 
 %%

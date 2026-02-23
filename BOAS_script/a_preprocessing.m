@@ -23,6 +23,11 @@ ft_databrowser(cfg,data_raw);
 
 %% ----- Preprocessing -----
 
+%  ------ Resampling ------
+% not needed for this data
+
+%%  ------ Filtering ------
+
 % 1. Notch filter
 cfg               = [];
 cfg.channel       = 'all';
@@ -73,6 +78,9 @@ cfg.viewmode = 'vertical';
 cfg.blocksize = 30;
 ft_databrowser(cfg,data_filtered);
 
+%% Re-referencing
+% not needed for this data
+
 %% 8. Epoching in 30s segment
 
 cfg             = [];
@@ -83,6 +91,12 @@ data_epoched    = ft_redefinetrial(cfg,data_eeg_filt);
 %NOTE: remember that if I decide to segment the data to remove artifacts etc, 
 % it must then be recomposed because the multitaper needs continuous data!!
 
+%% Changing the channel's name
+% Since we will use a fieldtrip layout which contains classical name (e.g.,
+% F3 instead of PSG_F3), I change the labels here
+
+data_epoched.label = {'F3'; 'F4'; 'C3'; 'C4'; 'O1'; 'O2'};
+
 %% 9. Atypical artifact rejection (databrowser)
 % https://www.fieldtriptoolbox.org/tutorial/preproc/ica_artifact_cleaning/#rejecting-atypical-artifacts
 
@@ -91,7 +105,7 @@ cfg.continuous      = 'yes'; % this can also be used on trial-based data to past
 cfg.blocksize       = 60;
 cfg.plotevents      = 'no';
 cfg.preproc.demean  = 'yes';
-cfg.layout          = 'CTF151.lay';
+cfg.layout          = 'CTF151.lay';% I dont think this layout fit the PSG data with 6 channels 'elec1020.lay' is for 10/20 system
 cfg = ft_databrowser(cfg, data_filtered);
 
 % remember the time of the artifacts
@@ -104,7 +118,7 @@ cfg.method      = 'summary';
 cfg.keepchannel = 'yes';
 cfg.keeptrial   = 'nan';
 cfg.channel     = {'PSG_F3' 'PSG_F4' 'PSG_C3' 'PSG_C4' 'PSG_O1' 'PSG_O2'};
-cfg.layout      = 'CTF151.lay';
+cfg.layout      = 'CTF151.lay'; % as above
 data_epoched_clean = ft_rejectvisual(cfg, data_epoched);
 
 %% Visualization of continuous data in 30s epochs
@@ -114,22 +128,45 @@ cfg.viewmode = 'vertical';
 cfg.blocksize = 30; % seconds
 ft_databrowser(cfg,data_epoched_clean);
 
-%% 10. Interpolation of bad channels
+%% 10. Interpolation of bad channels (before or after ICA?)
 badchannel = {'PSG_C4'};
 
-cfg = [];
-cfg.method  = 'distance';
-cfg.channel = {'PSG_F3','PSG_F4','PSG_C3','PSG_C4','PSG_O1','PSG_O2'};
-cfg.neighbourdist = 0.4;
-neighbours = ft_prepare_neighbours(cfg, data_filtered);
+cfg                 = [];
+cfg.method          = 'distance';
+cfg.channel         = {'PSG_F3','PSG_F4','PSG_C3','PSG_C4','PSG_O1','PSG_O2'};
+cfg.neighbourdist   = 0.4;
+neighbours          = ft_prepare_neighbours(cfg, data_filtered);
 
-cfg = [];
+cfg                = [];
 cfg.badchannel     = badchannel;
 cfg.method         = 'nearest';
 cfg.neighbours     = neighbours;
 data_interpolation = ft_channelrepair(cfg,data_filtered);
 
 %% 10. ICA
+cfg     = [];
+cfg.method = 'runica';
+comp = ft_componentanalysis(cfg, data_epoched);
+
+% plot component - spatial topography
+figure
+cfg = [];
+cfg.component = 1:20;
+cfg.layout = 'elec1020.lay';
+cfg.comment = 'no';
+ft_topoplotIC(cfg, comp)
+
+saveas(gcf, '/Users/filippobarbadoro/MATLAB_local/Script/3. BOAS dataset/BOAS_figure/ICA_topomap.png');
+
+% plot component - time course
+cfg = [];
+cfg.layout = 'elec1020.lay';
+cfg.viewmode = 'component';
+ft_databrowser(cfg, comp)
+
+saveas(gcf, '/Users/filippobarbadoro/MATLAB_local/Script/3. BOAS dataset/BOAS_figure/ICA_timecourse.png');
 
 %% 11. Reject component
-
+cfg = [];
+cfg.component = [1 2];
+data = ft_rejectcomponent(cfg, comp, data_epoched);
