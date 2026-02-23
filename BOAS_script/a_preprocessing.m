@@ -144,6 +144,14 @@ cfg.neighbours     = neighbours;
 data_interpolation = ft_channelrepair(cfg,data_filtered);
 
 %% 10. ICA
+
+% Before performing ICA, consider the possibility to downsample the data to
+% speed up the decomposition
+% cfg             = [];
+%cfg.resamplefs  = 300;
+%cfg.detrend     = 'no';
+%data = ft_resampledata(cfg, data);
+
 cfg     = [];
 cfg.method = 'runica';
 comp = ft_componentanalysis(cfg, data_epoched);
