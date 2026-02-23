@@ -1,6 +1,6 @@
 %% Periodogram
 
-cd '/Users/filippobarbadoro/Desktop/Matlab/BOAS dataset/script'
+cd '/Users/filippobarbadoro/MATLAB_local/Script/3. BOAS dataset/BOAS_script'
 
 %% Channel selection
 toi = 1:data_eeg_filt.sampleinfo(1,2);

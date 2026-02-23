@@ -1,6 +1,6 @@
 %% Hypnogram
 
-cd '/Users/filippobarbadoro/Desktop/Matlab/BOAS dataset/script'
+cd '/Users/filippobarbadoro/MATLAB_local/Script/3. BOAS dataset/BOAS_script'
 
 %% Creation of random data
 

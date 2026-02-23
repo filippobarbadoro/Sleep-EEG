@@ -3,7 +3,7 @@ clear all
 close all
 clc
 
-cd '/Users/filippobarbadoro/Desktop/Matlab/BOAS dataset/script'
+cd '/Users/filippobarbadoro/MATLAB_local/Script/3. BOAS dataset/BOAS_script'
 
 %% _____ Pairing channels _____
 %            (median)      

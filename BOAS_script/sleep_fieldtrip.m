@@ -1,4 +1,6 @@
-%import and read edf file
+cd '/Users/filippobarbadoro/MATLAB_local/Script/3. BOAS dataset/BOAS_script'
+
+%% import and read edf file
 cfg             = [];
 cfg.dataset     = 'sub-1_task-Sleep_acq-psg_eeg.edf';
 cfg.continuous  = 'yes';

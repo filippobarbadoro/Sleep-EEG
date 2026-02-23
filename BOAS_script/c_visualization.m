@@ -1,6 +1,6 @@
 %% Visualization
 
-cd '/Users/filippobarbadoro/Desktop/Matlab/BOAS dataset/script'
+cd '/Users/filippobarbadoro/MATLAB_local/Script/3. BOAS dataset/BOAS_script'
 
 %% ----- Data extraction -----
 trial_raw = data_raw.trial{1};

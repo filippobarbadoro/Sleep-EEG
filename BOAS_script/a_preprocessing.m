@@ -3,12 +3,12 @@ clear all
 close all
 clc
 
-cd '/Users/filippobarbadoro/Desktop/Matlab/BOAS dataset/script'
+cd '/Users/filippobarbadoro/MATLAB_local/Script/3. BOAS dataset/BOAS_script'
 
 %% ----- Import and visualization of raw data in edf format -----
 % Import and read edf file
 cfg             = [];
-cfg.dataset     = '/Users/filippobarbadoro/Desktop/Matlab/BOAS dataset/data/sub-2_task-Sleep_acq-psg_eeg.edf';
+cfg.dataset     = '/Users/filippobarbadoro/MATLAB_local/Data/3. BOAS dataset/sub-2_task-Sleep_acq-psg_eeg.edf';
 cfg.continuous  = 'yes';
 cfg.readbids    = 'no'; % to do not read the file.tsv
 cfg.channel     = 'all';
