@@ -45,8 +45,10 @@ data_notch        = ft_preprocessing(cfg, data_notch);
 % 2. Filtering EEG channels
 cfg               = [];
 cfg.channel       = {'PSG_F3' 'PSG_F4' 'PSG_C3' 'PSG_C4' 'PSG_O1' 'PSG_O2'};
-cfg.bpfilter      = 'yes';
-cfg.bpfreq        = [0.3 35]; % according to AASM guideliens
+cfg.hpfilter      = 'yes';
+cfg.hpfreq        = 0.3; % according to AASM guideliens
+cfg.lpfilter      = 'yes';
+cfg.lpfilter      = 35; % according to AASM guideliens
 data_eeg_filt     = ft_preprocessing(cfg, data_notch);
 
 % 3. Filtering EOG channels
@@ -91,14 +93,15 @@ data_epoched    = ft_redefinetrial(cfg,data_eeg_filt);
 %NOTE: remember that if I decide to segment the data to remove artifacts etc, 
 % it must then be recomposed because the multitaper needs continuous data!!
 
-%% Changing the channel's name
-% Since we will use a fieldtrip layout which contains classical name (e.g.,
-% F3 instead of PSG_F3), I change the labels here
-
-data_epoched.label = {'F3'; 'F4'; 'C3'; 'C4'; 'O1'; 'O2'};
-
 %% 9. Atypical artifact rejection (databrowser)
 % https://www.fieldtriptoolbox.org/tutorial/preproc/ica_artifact_cleaning/#rejecting-atypical-artifacts
+% 
+% Main characteristics: 
+% 1. continuous data required; 
+% 2. output = marked selected artifacts (to be removed with
+% ft_rejectartifact)
+%
+% To manually remove big artifacts
 
 cfg                 = [];
 cfg.continuous      = 'yes'; % this can also be used on trial-based data to paste them together
@@ -108,16 +111,38 @@ cfg.preproc.demean  = 'yes';
 cfg.layout          = 'CTF151.lay';% I dont think this layout fit the PSG data with 6 channels 'elec1020.lay' is for 10/20 system
 cfg = ft_databrowser(cfg, data_filtered);
 
-% remember the time of the artifacts
+% Saving the artifact manually selected
 cfg_artfctdef = cfg.artfctdef;
 
-%% 9. Atypical artifact rejection (rejectvisual)
+%% 10. Remove selected artifact
+cfg                     = [];
+cfg.artfctdef           = cfg_artfctdef;
+cfg.artfctdef.reject    = 'partial'; % 'partial' remove only the artifact manually selected, 'nan'insert nan in the selected trial, 'complete' remove the entire trial
+data_artrejected = ft_rejectartifact(cfg, data_filtered);
+
+%% 11. Epoching data for ft_rejectvisual
+cfg             = [];
+cfg.length      = 30; %seconds
+cfg.overlap     = 0;
+data_epoched    = ft_redefinetrial(cfg,data_artrejected);
+
+%% Changing the channel's name
+% Since we will use a fieldtrip layout which contains classical name (e.g.,
+% F3 instead of PSG_F3), I change the labels here
+
+data_epoched.label = {'F3'; 'F4'; 'C3'; 'C4'; 'O1'; 'O2'};
+
+%% 11. Atypical artifact rejection (rejectvisual)
+%
+% Main characteristics: 
+% 1. segmented data required; 
+% 2. output = cleaned data;
 
 cfg             = [];
 cfg.method      = 'summary';
 cfg.keepchannel = 'yes';
-cfg.keeptrial   = 'nan';
-cfg.channel     = {'PSG_F3' 'PSG_F4' 'PSG_C3' 'PSG_C4' 'PSG_O1' 'PSG_O2'};
+cfg.keeptrial   = 'nan'; % 'nan', put nan in bad trial; 'no', delete bad trial
+cfg.channel     = {'F3' 'F4' 'C3' 'C4' 'O1' 'O2'};
 cfg.layout      = 'CTF151.lay'; % as above
 data_epoched_clean = ft_rejectvisual(cfg, data_epoched);
 
@@ -128,7 +153,7 @@ cfg.viewmode = 'vertical';
 cfg.blocksize = 30; % seconds
 ft_databrowser(cfg,data_epoched_clean);
 
-%% 10. Interpolation of bad channels (before or after ICA?)
+%% . Interpolation of bad channels (after ICA if needed)
 badchannel = {'PSG_C4'};
 
 cfg                 = [];
@@ -143,7 +168,7 @@ cfg.method         = 'nearest';
 cfg.neighbours     = neighbours;
 data_interpolation = ft_channelrepair(cfg,data_filtered);
 
-%% 10. ICA
+%% 12. ICA
 
 % Before performing ICA, consider the possibility to downsample the data to
 % speed up the decomposition
