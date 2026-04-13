@@ -90,7 +90,7 @@ cfg.length      = 30; %seconds
 cfg.overlap     = 0;
 data_epoched    = ft_redefinetrial(cfg,data_eeg_filt);
 
-%NOTE: remember that if I decide to segment the data to remove artifacts etc, 
+% NOTE: remember that if I decide to segment the data to remove artifacts etc, 
 % it must then be recomposed because the multitaper needs continuous data!!
 
 %% 9. Atypical artifact rejection (databrowser)
@@ -109,7 +109,8 @@ cfg.blocksize       = 60;
 cfg.plotevents      = 'no';
 cfg.preproc.demean  = 'yes';
 cfg.layout          = 'CTF151.lay';% I dont think this layout fit the PSG data with 6 channels 'elec1020.lay' is for 10/20 system
-cfg = ft_databrowser(cfg, data_filtered);
+cfg.outputfile      = 'rejected_segments.mat';
+cfg = ft_databrowser(cfg, data_eeg_filt);
 
 % Saving the artifact manually selected
 cfg_artfctdef = cfg.artfctdef;
@@ -118,7 +119,10 @@ cfg_artfctdef = cfg.artfctdef;
 cfg                     = [];
 cfg.artfctdef           = cfg_artfctdef;
 cfg.artfctdef.reject    = 'partial'; % 'partial' remove only the artifact manually selected, 'nan'insert nan in the selected trial, 'complete' remove the entire trial
-data_artrejected = ft_rejectartifact(cfg, data_filtered);
+data_artrejected = ft_rejectartifact(cfg, data_eeg_filt);
+
+% Saving the variable in a .mat file
+save('databrow.mat', "data_artrejected")
 
 %% 11. Epoching data for ft_rejectvisual
 cfg             = [];
