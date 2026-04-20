@@ -116,7 +116,7 @@ cfg.artfctdef.reject    = 'partial'; % 'partial' remove only the artifact manual
 data_artrejected = ft_rejectartifact(cfg, data_eeg_filt);
 
 % Saving the variable in a .mat file
-save('databrow.mat', "data_artrejected")
+save('/Users/filippobarbadoro/MATLAB_local/Script/3. BOAS dataset/BOAS_mat/databrow.mat','data_artrejected');
 
 %% 10. Epoching data for ft_rejectvisual
 cfg             = [];
@@ -147,12 +147,15 @@ cfg.channel     = {'F3' 'F4' 'C3' 'C4' 'O1' 'O2'};
 cfg.layout      = 'elec1020.lay'; % as above
 data_epoched_clean = ft_rejectvisual(cfg, data_epoched);
 
-%% Visualization of continuous data in 30s epochs
+%% 11.1 Visualization of continuous data in 30s epochs
 cfg = [];
 cfg.continuous ='yes';
 cfg.viewmode = 'vertical';
 cfg.blocksize = 30; % seconds
 ft_databrowser(cfg,data_epoched_clean);
+
+%% 11.2 Saving the variable in a .mat file
+save('/Users/filippobarbadoro/MATLAB_local/Script/3. BOAS dataset/BOAS_mat/datarejvisual.mat','data_epoched_clean');
 
 %% 12. ICA
 
@@ -165,7 +168,7 @@ ft_databrowser(cfg,data_epoched_clean);
 
 cfg     = [];
 cfg.method = 'runica';
-comp = ft_componentanalysis(cfg, data_epoched);
+comp = ft_componentanalysis(cfg, data_epoched_clean);
 
 % plot component - spatial topography
 figure
@@ -183,19 +186,29 @@ cfg.layout = 'elec1020.lay';
 cfg.viewmode = 'component';
 ft_databrowser(cfg, comp)
 
-saveas(gcf, '/Users/filippobarbadoro/MATLAB_local/Script/3. BOAS dataset/BOAS_figure/ICA_timecourse.png');
+save('/Users/filippobarbadoro/MATLAB_local/Script/3. BOAS dataset/BOAS_mat/ICA_timecourse.mat', 'comp');
 
-%% 12. Reject component
+%% 12.1 Reject component
 cfg = [];
-cfg.component = [1 2];
-data = ft_rejectcomponent(cfg, comp, data_epoched);
+cfg.component = [1 3];
+data_ica = ft_rejectcomponent(cfg, comp, data_epoched_clean);
+
+%% 12.2 Visualization of continuous data in 30s epochs
+cfg = [];
+cfg.continuous ='yes';
+cfg.viewmode = 'vertical';
+cfg.blocksize = 30; % seconds
+ft_databrowser(cfg,data_ica);
+
+%% 12.3 Saving the variable in a .mat file
+save('/Users/filippobarbadoro/MATLAB_local/Script/3. BOAS dataset/BOAS_mat/dataicaremoved.mat','data_ica');
 
 %% 13. Interpolation of bad channels (after ICA if needed)
-badchannel = {'PSG_C4'};
+badchannel = {'C4'};
 
 cfg                 = [];
 cfg.method          = 'distance';
-cfg.channel         = {'PSG_F3','PSG_F4','PSG_C3','PSG_C4','PSG_O1','PSG_O2'};
+cfg.channel         = {'F3','F4','C3','C4','O1','O2'};
 cfg.neighbourdist   = 0.4;
 neighbours          = ft_prepare_neighbours(cfg, data_filtered);
 
@@ -204,3 +217,4 @@ cfg.badchannel     = badchannel;
 cfg.method         = 'nearest';
 cfg.neighbours     = neighbours;
 data_interpolation = ft_channelrepair(cfg,data_filtered);
+
