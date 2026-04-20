@@ -1,4 +1,4 @@
-%% Import and preprocessing
+%% Script to import and preprocessing sleep EEG data
 clear all
 close all
 clc
@@ -54,15 +54,19 @@ data_eeg_filt     = ft_preprocessing(cfg, data_notch);
 % 3. Filtering EOG channels
 cfg               = [];
 cfg.channel       = 'PSG_EOG';
-cfg.bpfilter      = 'yes';
-cfg.bpfreq        = [0.3 35]; % according to AASM guideliens
+cfg.hpfilter      = 'yes';
+cfg.hpfreq        = 0.3; % according to AASM guideliens
+cfg.lpfilter      = 'yes';
+cfg.lpfilter      = 35; % according to AASM guideliens
 data_eog_filt     = ft_preprocessing(cfg, data_notch);
 
 % 4. Filtering EMG channels
 cfg               = [];
 cfg.channel       = 'PSG_EMG';
-cfg.bpfilter      = 'yes';
-cfg.bpfreq        = [10 100]; % according to AASM guideliens
+cfg.hpfilter      = 'yes';
+cfg.hpfreq        = 10; % according to AASM guideliens
+cfg.lpfilter      = 'yes';
+cfg.lpfilter      = 100; % according to AASM guideliens
 data_emg_filt     = ft_preprocessing(cfg, data_notch);
 
 % 5. Other physiological channels not filtered
@@ -83,17 +87,7 @@ ft_databrowser(cfg,data_filtered);
 %% Re-referencing
 % not needed for this data
 
-%% 8. Epoching in 30s segment
-
-cfg             = [];
-cfg.length      = 30; %seconds
-cfg.overlap     = 0;
-data_epoched    = ft_redefinetrial(cfg,data_eeg_filt);
-
-% NOTE: remember that if I decide to segment the data to remove artifacts etc, 
-% it must then be recomposed because the multitaper needs continuous data!!
-
-%% 9. Atypical artifact rejection (databrowser)
+%% 8. Atypical artifact rejection (databrowser)
 % https://www.fieldtriptoolbox.org/tutorial/preproc/ica_artifact_cleaning/#rejecting-atypical-artifacts
 % 
 % Main characteristics: 
@@ -108,14 +102,14 @@ cfg.continuous      = 'yes'; % this can also be used on trial-based data to past
 cfg.blocksize       = 60;
 cfg.plotevents      = 'no';
 cfg.preproc.demean  = 'yes';
-cfg.layout          = 'CTF151.lay';% I dont think this layout fit the PSG data with 6 channels 'elec1020.lay' is for 10/20 system
+cfg.layout          = 'elec1020.lay';% I dont think this layout fit the PSG data with 6 channels 'elec1020.lay' is for 10/20 system
 cfg.outputfile      = 'rejected_segments.mat';
 cfg = ft_databrowser(cfg, data_eeg_filt);
 
 % Saving the artifact manually selected
 cfg_artfctdef = cfg.artfctdef;
 
-%% 10. Remove selected artifact
+%% 9. Remove selected artifact
 cfg                     = [];
 cfg.artfctdef           = cfg_artfctdef;
 cfg.artfctdef.reject    = 'partial'; % 'partial' remove only the artifact manually selected, 'nan'insert nan in the selected trial, 'complete' remove the entire trial
@@ -124,11 +118,14 @@ data_artrejected = ft_rejectartifact(cfg, data_eeg_filt);
 % Saving the variable in a .mat file
 save('databrow.mat', "data_artrejected")
 
-%% 11. Epoching data for ft_rejectvisual
+%% 10. Epoching data for ft_rejectvisual
 cfg             = [];
 cfg.length      = 30; %seconds
 cfg.overlap     = 0;
 data_epoched    = ft_redefinetrial(cfg,data_artrejected);
+
+% NOTE: remember that if I decide to segment the data to remove artifacts etc, 
+% it must then be recomposed because the multitaper needs continuous data!!
 
 %% Changing the channel's name
 % Since we will use a fieldtrip layout which contains classical name (e.g.,
@@ -147,7 +144,7 @@ cfg.method      = 'summary';
 cfg.keepchannel = 'yes';
 cfg.keeptrial   = 'nan'; % 'nan', put nan in bad trial; 'no', delete bad trial
 cfg.channel     = {'F3' 'F4' 'C3' 'C4' 'O1' 'O2'};
-cfg.layout      = 'CTF151.lay'; % as above
+cfg.layout      = 'elec1020.lay'; % as above
 data_epoched_clean = ft_rejectvisual(cfg, data_epoched);
 
 %% Visualization of continuous data in 30s epochs
@@ -156,21 +153,6 @@ cfg.continuous ='yes';
 cfg.viewmode = 'vertical';
 cfg.blocksize = 30; % seconds
 ft_databrowser(cfg,data_epoched_clean);
-
-%% . Interpolation of bad channels (after ICA if needed)
-badchannel = {'PSG_C4'};
-
-cfg                 = [];
-cfg.method          = 'distance';
-cfg.channel         = {'PSG_F3','PSG_F4','PSG_C3','PSG_C4','PSG_O1','PSG_O2'};
-cfg.neighbourdist   = 0.4;
-neighbours          = ft_prepare_neighbours(cfg, data_filtered);
-
-cfg                = [];
-cfg.badchannel     = badchannel;
-cfg.method         = 'nearest';
-cfg.neighbours     = neighbours;
-data_interpolation = ft_channelrepair(cfg,data_filtered);
 
 %% 12. ICA
 
@@ -203,7 +185,22 @@ ft_databrowser(cfg, comp)
 
 saveas(gcf, '/Users/filippobarbadoro/MATLAB_local/Script/3. BOAS dataset/BOAS_figure/ICA_timecourse.png');
 
-%% 11. Reject component
+%% 12. Reject component
 cfg = [];
 cfg.component = [1 2];
 data = ft_rejectcomponent(cfg, comp, data_epoched);
+
+%% 13. Interpolation of bad channels (after ICA if needed)
+badchannel = {'PSG_C4'};
+
+cfg                 = [];
+cfg.method          = 'distance';
+cfg.channel         = {'PSG_F3','PSG_F4','PSG_C3','PSG_C4','PSG_O1','PSG_O2'};
+cfg.neighbourdist   = 0.4;
+neighbours          = ft_prepare_neighbours(cfg, data_filtered);
+
+cfg                = [];
+cfg.badchannel     = badchannel;
+cfg.method         = 'nearest';
+cfg.neighbours     = neighbours;
+data_interpolation = ft_channelrepair(cfg,data_filtered);
